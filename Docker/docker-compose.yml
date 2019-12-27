@@ -1,0 +1,35 @@
+version: '3'
+ 
+services: 
+  mongo: 
+    environment: 
+      MONGO_INITDB_ROOT_PASSWORD: root
+      MONGO_INITDB_ROOT_USERNAME: root
+    image: mongo
+    restart: always
+    volumes: 
+      - ../database/data:/data/db:rw
+    ports: 
+      - 27017:27017
+  mongo-express: 
+    environment: 
+      ME_CONFIG_MONGODB_ADMINPASSWORD: root
+      ME_CONFIG_MONGODB_ADMINUSERNAME: root
+    image: mongo-express
+    ports: 
+      - 8081:8081
+    restart: always
+    depends_on: 
+      - mongo
+  scrapy: 
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    command: ./docker-spider-entrypoint.sh
+    image: scrapy_image
+    ports: 
+      - 8001:8001
+    volumes: 
+      - ../ReviewCrawler/:/home/docker/crawler:rw
+    depends_on: 
+      - mongo
