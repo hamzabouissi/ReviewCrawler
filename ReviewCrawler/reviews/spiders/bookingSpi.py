@@ -23,7 +23,7 @@ class BookingspiSpider(scrapy.Spider):
         pass
 
     
-    def ReviewFinder(self,response,pagename,offset):
+    def ReviewFinder(self,response,pagename,offset,name):
 
         data = []
         
@@ -50,6 +50,7 @@ class BookingspiSpider(scrapy.Spider):
             review_date = datetime.strptime(" ".join(review_date.get_text().strip().split(" ")[1:]),"%d %B %Y").strftime("%Y-%m-%d")
             if title and username and country and score and comment :
                 yield ReviewsItem(**{
+                    'hotel':name,
                     'title':title.get_text().strip(),
                     'username':username.get_text().strip(),
                     'country':country.contents[1].strip(),
@@ -66,23 +67,22 @@ class BookingspiSpider(scrapy.Spider):
         if next_page:
             url = "https://booking.com" + next_page.a.attrs['href']
             
-            yield scrapy.Request(url,callback=self.ReviewFinder,cb_kwargs=dict(pagename=pagename,offset=offset))
+            yield scrapy.Request(url,callback=self.ReviewFinder,cb_kwargs=dict(pagename=pagename,offset=offset,name=name))
 
     def start_requests(self):
         
-        
-        yield scrapy.Request(self.base_url.format(self.offset),callback=self.Hotels)
+        for i in range(0,400,25):
+            yield scrapy.Request(self.base_url.format(i),callback=self.Hotels)
 
     def Hotels(self,response):
         
         page = BeautifulSoup(response.text,"lxml")
         for hotel in page.find_all("a",class_="hotel_name_link url"):
             pagename = hotel.attrs['href'].split(".")[0].split("/")[-1]
+            hotel_name = hotel.find('span',class_='sr-hotel__name').get_text().strip()
             url = self.review_url+self.payload.format(pagename,0)
             
-            yield scrapy.Request(url,callback=self.ReviewFinder,cb_kwargs=dict(pagename=pagename,offset=0))
-        self.offset+=25  
-        self.logger.info("New Request")
-        yield self.start_requests()
+            yield scrapy.Request(url,callback=self.ReviewFinder,cb_kwargs=dict(pagename=pagename,offset=0,name=hotel_name))
+       
     
     

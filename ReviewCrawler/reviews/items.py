@@ -10,7 +10,7 @@ import scrapy
 
 class ReviewsItem(scrapy.Item):
     # define the fields for your item here like:
-    # name = scrapy.Field()
+    hotel = scrapy.Field()
     title = scrapy.Field()
     username = scrapy.Field()
     country = scrapy.Field()

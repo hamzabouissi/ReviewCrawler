@@ -8,4 +8,4 @@ source ./env/bin/activate
 ls la
 pip install -r requirements.txt
 
-scrapy crawl bookingSpi -s JOBDIR=crawls/bookingSpi-1
+scrapy crawl bookingSpi 
